@@ -11,6 +11,7 @@ from django.core.mail import EmailMessage
 from accounts.models import User
 from accounts.models import Student
 from accounts.models import Employee
+from accounts.models import Enterprise
 
 from jobboard.models import Annonce
 
