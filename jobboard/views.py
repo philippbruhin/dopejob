@@ -3,6 +3,7 @@ from django.http import HttpResponse, Http404
 from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
 
 from django.conf import settings
 from django.utils.translation import ugettext as _
@@ -31,6 +32,7 @@ def index(request):
     })
 
 
+@login_required(login_url=reverse_lazy('login'), redirect_field_name=None)
 def post_annonce(request):
     if request.method == 'POST':
         form = PostAnnonceForm(request.POST, request.FILES)
