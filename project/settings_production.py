@@ -1,4 +1,4 @@
-from activcar.settings import *
+from project.settings import *
 from celery.schedules import crontab
 
 import dj_database_url
