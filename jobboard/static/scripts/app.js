@@ -32,8 +32,19 @@ function displayUserAccountForm() {
     }
 };
 
+function exitEventPage() {
+    $(document).on('mouseout', function(evt) {
+        if (evt.toElement === null && evt.relatedTarget === null) {
+            $(evt.currentTarget).off('mouseout');
+        }
+    })
+}
+
 $(function() {
     closeNotification();
     displayUserAccountForm();
+    setTimeout(function() {
+        exitEventPage();
+    }, 5000);
     $("#profileType").change(displayUserAccountForm);
 });
