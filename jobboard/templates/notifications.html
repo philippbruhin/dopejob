@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans 'Notifications' %}{% endblock %}
+
+{% block content %}
+{% for notif in notifications %}
+  {{ notif }}
+
+  {# for specific is like below #}
+  {# `specific_model_name` eg: `comment`, `message`, `post` #}
+  {#% if notif._model_name == 'specific_model_name' %#}
+    {# do_stuff #}
+  {#% endif %#}
+{% endfor %}
+{% endblock %}

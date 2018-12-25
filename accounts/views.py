@@ -1,15 +1,26 @@
+from bs4 import BeautifulSoup
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout, authenticate, login
 from django.utils.translation import ugettext as _
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
+from django.http import HttpResponseBadRequest, HttpResponse
+from django.template.loader import render_to_string
 
 from django.contrib import messages
 
 from accounts.models import User
+from accounts.models import Notification
+
 from accounts.forms import StudentProfileForm
 from accounts.forms import EmployeeProfileForm
 from accounts.forms import EnterpriseProfileForm
 from accounts.forms import LoginForm
+
+from django.views.generic import ListView
+
+from jobboard.emails import NotificationEmail
 
 # Create your views here.
 def login_view(request):
@@ -69,3 +80,47 @@ def register_view(request):
 @login_required
 def profile(request):
     return render(request, 'user_profile.html', {})
+
+
+@staff_member_required
+def preview_email(request):
+    email_types = {
+        # 'email_confirmation': ConfirmationEmail,
+        'notification': NotificationEmail,
+        # 'welcome': WelcomeEmail,
+    }
+    email_type = request.GET.get('type')
+    if email_type not in email_types:
+        return HttpResponseBadRequest("Invalid email type")
+
+    if 'user_id' in request.GET:
+        user = get_object_or_404(User, request.GET['user_id'])
+    else:
+        user = request.user
+
+    email = email_types[email_type](user)
+
+    if request.GET.get('plain'):
+        text = "Subject: %s\n\n%s" % (email.subject, email.plain)
+        print(text)
+        return HttpResponse(text, content_type='text/plain')
+    else:
+        # Insert a table with metadata like Subject, To etc. to top of body
+        extra = render_to_string('user_email/metadata.html', {'email': email})
+        soup = BeautifulSoup(email.body, 'html5lib')
+        soup.body.insert(0, BeautifulSoup(extra, features="html5lib"))
+
+        return HttpResponse(soup.encode())
+
+
+class NotificationListView(ListView):
+    model = Notification
+    context_object_name = 'notifications'
+    paginate_by = 10
+    template_name = 'notifications.html'
+
+    def get_queryset(self):
+        notifications = self.model.objects.filter(receiver=self.request.user)
+
+        notifications.update(seen=True)
+        return notifications

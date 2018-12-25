@@ -17,6 +17,7 @@ from accounts.models import Employee
 from accounts.models import Student
 from accounts.models import Enterprise
 from accounts.models import Cursus
+from accounts.models import Notification
 
 # Register your models here.
 class UserAdmin(BaseUserAdmin):
@@ -27,11 +28,11 @@ class UserAdmin(BaseUserAdmin):
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
-    list_display = ('registration_number', 'email', 'admin')
+    list_display = ('registration_number', 'email', 'admin',)
     list_filter = ('admin',)
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ()}),
+        ('Personal info', {'fields': ( )}),
         ('Permissions', {'fields': ('admin',)}),
     )
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
@@ -72,6 +73,7 @@ admin.site.register(Employee)
 admin.site.register(Student)
 admin.site.register(Cursus)
 admin.site.register(Enterprise)
+admin.site.register(Notification)
 
 # Unregister the Group Model
 admin.site.unregister(Group)

@@ -2,6 +2,9 @@ import uuid
 
 from django.db import models
 from django.contrib.auth.models import ( BaseUserManager, AbstractBaseUser )
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.utils.translation import ugettext_lazy as _
 
 # Create your models here.
 class UserManager(BaseUserManager):
@@ -111,7 +114,7 @@ class Message(models.Model):
         choices=TOPIC_CHOICES,
         default=GENERAL,
     )
-    author = models.ForeignKey('User', on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
     publication_date = models.DateField(auto_now_add=True)
 
@@ -124,6 +127,61 @@ class Message(models.Model):
             return self.content[:19] + "..."
         else:
             return self.content
+
+
+class ContentTypeToGetModel(object):
+
+    """
+    requires fields:
+        - content_type: FK(ContentType)
+        - object_id: PositiveIntegerField()
+    """
+
+    def get_related_object(self):
+        """
+        return the related object of content_type.
+        eg: <Question: Holisticly grow synergistic best practices>
+        """
+        # This should return an error: MultipleObjectsReturned
+        # return self.content_type.get_object_for_this_type()
+        # So, i handle it with this one:
+        model_class = self.content_type.model_class()
+        return model_class.objects.get(id=self.object_id)
+
+    @property
+    def _model_name(self):
+        """
+        return lowercase of model name.
+        eg: `question`, `answer`
+        """
+        return self.get_related_object()._meta.model_name
+
+
+class Notification(models.Model, ContentTypeToGetModel):
+    receiver = models.ForeignKey(User, related_name='notification_receiver',on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, related_name='notifications', on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+    STATUS_CHOICES = (
+        ('annonce', _('an annonce')),
+        ('reply', _('a reply')),
+        ('message', _('a message'))
+    )
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='message')
+    seen = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        title = _('%(receiver)s have a %(status)s in the %(model)s:%(id)s')
+        return title % {'receiver': self.receiver.first_name, 'status': self.status, 'model': self._model_name, 'id': self.object_id}
+
+    class Meta:
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notifications'
+        ordering = ['-created']
 
 
 class Faculty(models.Model):
@@ -170,8 +228,8 @@ class Cursus(models.Model):
 
 class Employee(User):
     office = models.CharField(max_length=30)
-    campus = models.ForeignKey('Campus', on_delete=models.CASCADE)
-    job = models.ForeignKey('Job', on_delete=models.CASCADE)
+    campus = models.ForeignKey(Campus, on_delete=models.CASCADE)
+    job = models.ForeignKey(Job, on_delete=models.CASCADE)
     user_type = 'employee'
 
     def __str__(self):
@@ -179,7 +237,7 @@ class Employee(User):
 
 
 class Student(User):
-    campus = models.ForeignKey('Campus', on_delete=models.CASCADE)
+    campus = models.ForeignKey(Campus, on_delete=models.CASCADE)
     year = models.IntegerField()
     user_type = 'student'
 

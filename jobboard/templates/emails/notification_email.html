@@ -1,0 +1,13 @@
+{% extends 'emails/base.html' %}
+{% load i18n %}
+
+{% block subject %} {% trans 'Notification' %} {% endblock %}
+
+{% block plain %}  {% endblock %}
+
+{% block body %}
+    {% block html_main %}
+        {{ user.email }}
+        {% trans 'Hello world' %}
+    {% endblock %}
+{% endblock %}

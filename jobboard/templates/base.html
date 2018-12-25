@@ -1,5 +1,6 @@
 {% load staticfiles %}
 {% load i18n %}
+{% load notification_tags %}
 <!DOCTYPE html lang="en">
   <html>
   <head>
@@ -45,6 +46,19 @@
                     {% endfor %}
                 </ul>
                 {% endif %}
+                {#% if request.user.is_authenticated %#}
+                  <!--<ul class="authenticated-menu">
+                    <li>
+                        <a href="{ url 'notification' }">
+                          {% if request.user %}
+                            <i class="globe red active icon"></i>
+                          {% else %}
+                            <i class="globe icon"></i>
+                          {% endif %}
+                        </a>
+                    </li>
+                </ul>-->
+                {#% endif %#}
                 {% block content %}{% endblock %}
             </div>
         </div>

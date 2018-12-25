@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
+from django.contrib.contenttypes.models import ContentType
 
 from django.conf import settings
 from django.utils.translation import ugettext as _
@@ -15,6 +16,7 @@ from accounts.models import Employee
 from accounts.models import Enterprise
 
 from jobboard.models import Annonce
+from accounts.models import Notification
 
 from jobboard.filters import AnnonceFilter
 
@@ -41,10 +43,25 @@ def post_annonce(request):
             # car = form.save(commit=False)
             #car.owner = request.user
             # car.save()
+            instance = form.save(commit=False)
+            instance.save()
+
+            receiver = User.objects.filter(email=instance.email).first()
+            content_type = ContentType.objects.get(model='annonce')
+
+            notif = Notification.objects.create(
+                receiver=receiver,
+                content_type=content_type,
+                object_id=instance.id,
+                status='annonce'
+            )
+
+            notif.save()
+
             messages.add_message(
                 request, messages.SUCCESS, _('Annonce ajoutée. N\'oubliez pas de la publier quand elle sera prête.')
             )
-            return redirect('cars')
+            return redirect('jobs_list')
         else:
             print(form.errors)
             messages.add_message(
