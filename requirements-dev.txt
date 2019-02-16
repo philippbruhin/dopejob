@@ -1,8 +1,8 @@
-Django>=2.0.10
+Django==2.0.10
 olefile==0.44
-Pillow==4.3.0
+Pillow==5.4.1
 pytz==2017.3
-gunicorn>=19.6.0
+gunicorn==19.6.0
 whitenoise==3.2
 django-filter==2.1.0
 dj-pagination==2.3.2
